@@ -53,11 +53,12 @@ jobs:
         run: |
           cd build
           mkdir AsepriteBundle
-          cp -r data AsepriteBundle/
+          cp -r bin/data AsepriteBundle/
           cp bin/aseprite AsepriteBundle/
           cp ../aseprite.ini AsepriteBundle/ || true
           xattr -cr AsepriteBundle
           zip -r aseprite-mac-arm64.zip AsepriteBundle
+
 
       - name: Upload to Release
         uses: softprops/action-gh-release@v1
