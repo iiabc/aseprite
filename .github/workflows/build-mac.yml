@@ -4,14 +4,11 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write   # 允许创建 Release 与上传资产
+  contents: write
 
 jobs:
   build:
     runs-on: macos-latest
-    strategy:
-      matrix:
-        arch: [arm64]
 
     steps:
       - name: Checkout code
@@ -24,18 +21,15 @@ jobs:
 
       - name: Download Skia binary for ARM64
         run: |
-          # 使用官方预编译的 Skia-m102 macOS Release arm64 包
-          curl -L -o skia.zip \
-            https://github.com/aseprite/skia/releases/download/m102/Skia-macOS-Release-arm64.zip
+          curl -L -o skia.zip https://github.com/aseprite/skia/releases/download/m102-861e4743af/Skia-macOS-Release-arm64.zip
           unzip skia.zip -d skia
-        # Skia-macOS-Release-arm64.zip 来自 Skia-m102 release :contentReference[oaicite:0]{index=0}
 
       - name: Configure CMake
         run: |
           mkdir build && cd build
           cmake .. \
             -DCMAKE_BUILD_TYPE=Release \
-            -DLAF_OS_BACKEND=skia \
+            -DLAF_BACKEND=skia \
             -DSKIA_DIR=${{ github.workspace }}/skia \
             -DCMAKE_OSX_ARCHITECTURES=arm64 \
             -G Ninja
@@ -46,7 +40,7 @@ jobs:
       - name: Package .app bundle
         run: |
           cd build
-          mv Release/*.app Aseprite.app
+          mv bin/Aseprite.app Aseprite.app
           zip -r aseprite-mac-arm64.zip Aseprite.app
 
       - name: Create GitHub Release (draft)
