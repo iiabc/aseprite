@@ -11,19 +11,24 @@ jobs:
     runs-on: macos-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout code (with submodules)
         uses: actions/checkout@v3
         with:
           submodules: recursive
 
-      - name: Install dependencies via Homebrew
+      - name: Install build dependencies via Homebrew
         run: |
           brew update
-          brew install cmake ninja python
+          # 基础编译工具
+          brew install cmake ninja python pkg-config
+          # 常见图像/文本依赖
+          brew install jpeg-turbo libpng libwebp freetype harfbuzz bzip2
 
       - name: Download Skia binary for ARM64
         run: |
-          curl -L -o skia.zip https://github.com/aseprite/skia/releases/download/m124-08a5439a6b/Skia-macOS-Release-arm64.zip
+          SKIA_VER="m124-08a5439a6b"
+          SKIA_URL="https://github.com/aseprite/skia/releases/download/${SKIA_VER}/Skia-macOS-Release-arm64.zip"
+          curl -L -o skia.zip "$SKIA_URL"
           unzip skia.zip -d skia
 
       - name: Configure CMake
