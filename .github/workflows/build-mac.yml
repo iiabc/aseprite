@@ -1,63 +1,70 @@
-name: Build Aseprite macOS
+name: Build Aseprite macOS ARM64
 
 on:
   workflow_dispatch:
+
+permissions:
+  contents: write   # 用于创建 release 与上传资产
+  id-token: write  # 如果后面需要做签名
 
 jobs:
   build:
     runs-on: macos-latest
     strategy:
       matrix:
-        os: [macos-latest]
         arch: [arm64]
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Install dependencies via Homebrew
-      run: |
-        brew update
-        brew install cmake ninja python
+      - name: Install dependencies via Homebrew
+        run: |
+          brew update
+          brew install cmake ninja python
 
-    - name: Download Skia binary for ARM64
-      run: |
-        SKIA_VER=skia-m102-macos-arm64
-        curl -L -o skia.zip \
-          https://github.com/aseprite/skia/releases/download/m102/$SKIA_VER.zip
-        unzip skia.zip -d skia
+      - name: Download Skia binary for ARM64
+        run: |
+          SKIA_VER=skia-m102-macos-arm64
+          curl -L -o skia.zip \
+            https://github.com/aseprite/skia/releases/download/m102/$SKIA_VER.zip
+          unzip skia.zip -d skia
 
-    - name: Configure CMake
-      run: |
-        mkdir build && cd build
-        cmake .. \
-          -DCMAKE_BUILD_TYPE=Release \
-          -DLAF_OS_BACKEND=skia \
-          -DSKIA_DIR=${{ github.workspace }}/skia \
-          -DCMAKE_OSX_ARCHITECTURES=arm64 \
-          -G Ninja
+      - name: Configure CMake
+        run: |
+          mkdir build && cd build
+          cmake .. \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DLAF_OS_BACKEND=skia \
+            -DSKIA_DIR=${{ github.workspace }}/skia \
+            -DCMAKE_OSX_ARCHITECTURES=arm64 \
+            -G Ninja
 
-    - name: Build Aseprite
-      run: ninja -C build aseprite
+      - name: Build Aseprite
+        run: ninja -C build aseprite
 
-    - name: Package .app bundle
-      run: |
-        cd build
-        # Aseprite.app 已生成在 build/Release 或 build/Release/Aseprite.app
-        mv Release/*.app Aseprite.app
-        zip -r aseprite-mac-arm64.zip Aseprite.app
+      - name: Package .app bundle
+        run: |
+          cd build
+          mv Release/*.app Aseprite.app
+          zip -r aseprite-mac-arm64.zip Aseprite.app
 
-    - name: Create GitHub Release (draft)
-      uses: softprops/create-release@v1
-      with:
-        tag_name: v${{ github.run_number }}-mac-arm64
-        release_name: "Aseprite macOS ARM64 Build ${{ github.run_number }}"
-        draft: true
+      - name: Create GitHub Release (draft)
+        uses: actions/create-release@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag_name: v${{ github.run_number }}-mac-arm64
+          release_name: Aseprite macOS ARM64 Build ${{ github.run_number }}
+          draft: true
 
-    - name: Upload asset to Release
-      uses: softprops/upload-release-asset@v1
-      with:
-        tag_name: v${{ github.run_number }}-mac-arm64
-        asset_path: build/aseprite-mac-arm64.zip
-        asset_name: aseprite-mac-arm64.zip
-        asset_content_type: application/zip
+      - name: Upload asset to Release
+        uses: actions/upload-release-asset@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: build/aseprite-mac-arm64.zip
+          asset_name: aseprite-mac-arm64.zip
+          asset_content_type: application/zip
+
+    outputs:
+      release_url: ${{ steps.create_release.outputs.html_url }}
