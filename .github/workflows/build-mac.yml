@@ -32,7 +32,7 @@ jobs:
           curl -L -o skia.zip "$SKIA_URL"
           unzip skia.zip -d skia
 
-      - name: Configure CMake (修正路径)
+      - name: Configure CMake
         run: |
           mkdir build && cd build
           cmake .. \
@@ -40,6 +40,8 @@ jobs:
             -DLAF_BACKEND=skia \
             -DSKIA_DIR=${{ github.workspace }}/skia \
             -DCMAKE_OSX_ARCHITECTURES=arm64 \
+            -DLIBJPEG_TURBO_INCLUDE_DIR=/opt/homebrew/include \
+            -DLIBJPEG_TURBO_LIBRARY=/opt/homebrew/lib/libjpeg.a \
             -G Ninja
 
       - name: Build Aseprite
