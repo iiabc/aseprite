@@ -44,7 +44,10 @@ jobs:
 
 
       - name: Build Aseprite
-        run: ninja -C build aseprite
+        run: ninja -C build aseprite Aseprite.app
+
+      - name: Debug check contents
+        run: ls -l build/bin
 
       - name: Package release bundle
         run: |
