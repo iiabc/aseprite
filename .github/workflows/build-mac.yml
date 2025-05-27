@@ -38,7 +38,10 @@ jobs:
             -DLAF_BACKEND=skia \
             -DSKIA_DIR=${{ github.workspace }}/skia \
             -DCMAKE_OSX_ARCHITECTURES=arm64 \
+            -DLIBJPEG_TURBO_INCLUDE_DIR=/opt/homebrew/include \
+            -DLIBJPEG_TURBO_LIBRARY=/opt/homebrew/lib/libjpeg.a \
             -G Ninja
+
 
       - name: Build Aseprite
         run: ninja -C build aseprite
