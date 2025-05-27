@@ -8,25 +8,23 @@ permissions:
 
 jobs:
   build:
-    runs-on: macos-latest  # 确保使用 Apple Silicon 环境 (GitHub 默认已支持)
+    runs-on: macos-latest  # macOS 环境，Apple Silicon 已默认支持
 
     steps:
       - name: Checkout code (with submodules)
-        uses: actions/checkout@v4  # 升级到最新版 checkout
+        uses: actions/checkout@v4
         with:
           submodules: recursive
 
       - name: Install build dependencies via Homebrew
         run: |
           brew update
-          # 修正 libwebp -> webp，并补充其他依赖
           brew install cmake ninja python pkg-config \
             jpeg-turbo libpng webp freetype harfbuzz \
             bzip2 zlib libtiff
 
-      - name: Download Skia binary for ARM64 (修正版本)
+      - name: Download Skia binary for ARM64
         run: |
-          # 使用 Aseprite 官方推荐的 Skia ARM64 版本
           SKIA_VER="m124-08a5439a6b"
           SKIA_URL="https://github.com/aseprite/skia/releases/download/${SKIA_VER}/Skia-macOS-Release-arm64.zip"
           curl -L -o skia.zip "$SKIA_URL"
@@ -40,22 +38,17 @@ jobs:
             -DLAF_BACKEND=skia \
             -DSKIA_DIR=${{ github.workspace }}/skia \
             -DCMAKE_OSX_ARCHITECTURES=arm64 \
-            -DLIBJPEG_TURBO_INCLUDE_DIR=/opt/homebrew/include \
-            -DLIBJPEG_TURBO_LIBRARY=/opt/homebrew/lib/libjpeg.a \
             -G Ninja
 
       - name: Build Aseprite
         run: ninja -C build aseprite
 
-      - name: Package .app bundle (添加代码签名绕过)
+      - name: Package CLI executable
         run: |
           cd build
-          mv bin/Aseprite.app Aseprite.app
-          # 绕过 macOS 签名验证（仅限测试版）
-          xattr -cr Aseprite.app
-          zip -r aseprite-mac-arm64.zip Aseprite.app
+          zip aseprite-mac-arm64.zip bin/aseprite
 
-      - name: Upload to Release (使用现代方案)
+      - name: Upload to Release
         uses: softprops/action-gh-release@v1
         with:
           files: build/aseprite-mac-arm64.zip
