@@ -4,8 +4,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write   # 用于创建 release 与上传资产
-  id-token: write  # 如果后面需要做签名
+  contents: write   # 允许创建 Release 与上传资产
 
 jobs:
   build:
@@ -25,10 +24,11 @@ jobs:
 
       - name: Download Skia binary for ARM64
         run: |
-          SKIA_VER=skia-m102-macos-arm64
+          # 使用官方预编译的 Skia-m102 macOS Release arm64 包
           curl -L -o skia.zip \
-            https://github.com/aseprite/skia/releases/download/m102/$SKIA_VER.zip
+            https://github.com/aseprite/skia/releases/download/m102/Skia-macOS-Release-arm64.zip
           unzip skia.zip -d skia
+        # Skia-macOS-Release-arm64.zip 来自 Skia-m102 release :contentReference[oaicite:0]{index=0}
 
       - name: Configure CMake
         run: |
@@ -50,11 +50,12 @@ jobs:
           zip -r aseprite-mac-arm64.zip Aseprite.app
 
       - name: Create GitHub Release (draft)
+        id: create_release
         uses: actions/create-release@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           tag_name: v${{ github.run_number }}-mac-arm64
-          release_name: Aseprite macOS ARM64 Build ${{ github.run_number }}
+          release_name: "Aseprite macOS ARM64 Build ${{ github.run_number }}"
           draft: true
 
       - name: Upload asset to Release
@@ -65,6 +66,3 @@ jobs:
           asset_path: build/aseprite-mac-arm64.zip
           asset_name: aseprite-mac-arm64.zip
           asset_content_type: application/zip
-
-    outputs:
-      release_url: ${{ steps.create_release.outputs.html_url }}
