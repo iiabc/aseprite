@@ -23,7 +23,7 @@ jobs:
 
       - name: Download Skia binary for ARM64
         run: |
-          curl -L -o skia.zip https://github.com/aseprite/skia/releases/download/m102-861e4743af/Skia-macOS-Release-arm64.zip
+          curl -L -o skia.zip https://github.com/aseprite/skia/releases/download/m124-8bfa6c6/Skia-macOS-Release-arm64.zip
           unzip skia.zip -d skia
 
       - name: Configure CMake
